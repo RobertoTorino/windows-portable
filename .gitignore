@@ -1,0 +1,36 @@
+# Each app (and portal/) has its own .gitignore for what is specific to it; this one covers the whole repository.
+__pycache__/
+*.pyc
+.pytest_cache/
+/.idea/
+.vscode/
+*.log
+
+# Local venvs: per app (python/, _python/). The venvs for the tests are the Nexus checkout's, one per OS.
+python/
+_python/
+/.venv/
+/.venv-*/
+
+# MkDocs output, and the cache of its privacy plugin (the fonts it downloads at build time), which lands in the
+# folder mkdocs is run from
+/site/
+.cache/
+
+# The design panel's mock while `mkdocs serve` runs (the Nexus tools' mkdocs/design_panel.py)
+.design-mock.json
+
+# OS and editor droppings (Linux/KDE, Windows, macOS)
+*~
+*.swp
+.directory
+.Trash-*/
+Thumbs.db
+ehthumbs.db
+desktop.ini
+$RECYCLE.BIN/
+.DS_Store
+
+# Windows' NUL device written as a real file by a Git Bash command meant for cmd: git cannot add it
+NUL
+*.dmp

@@ -1,0 +1,16 @@
+Changelog: 13-11-2026 18:44:27
+
+Breaking. The Windows Portable Suite has a repository of its own, github.com/RobertoTorino/windows-portable (owner,
+13-11-2026: one repository per suite). Until now it was the folder windows-portable/ of Nexus. The suite keeps no
+copy of the Nexus tools: it is worked on inside a Nexus checkout, as the folder windows-portable/ there, and every
+job of its workflows starts with Nexus's action, which checks out Nexus at the commit NEXUS_REF names and this
+repository inside it. Its workflows are its own: ci.yml (ci-windows-portable.yml in Nexus), release.yml
+(release-windows-portable.yml; started by hand with the release commit, or by a tag) and upstream.yml. The root has
+LICENSE, .gitignore, .gitattributes, NEXUS_REF, MIGRATION.md, this CHANGELOG, requirements-dev.txt (what the
+suite's tests need beyond Nexus's, for the same venv) and ICONS.md (the suite's icons, written by the Nexus tools'
+make_icons.py; they were a section of Nexus's ICONS.md). CI has a job more, nexus-tools: the Nexus tools' own tests
+with this suite in the checkout, which Nexus's CI cannot run. tools/check_manifest.py reads the
+last portal release's apps.toml by the path git has for it, and tools/build_release.py takes the zip's file times
+from this repository's newest commit. RPCS3 Manager's tests have their own copy of the three package headers they
+shared with the BC250 Bazzite Suite (apps/rpcs3/tests/fixtures). The READMEs show this repository's CI. No app and
+no portal changed: nothing needs a release.

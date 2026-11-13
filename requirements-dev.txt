@@ -1,0 +1,7 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# What the suite's tests need beyond the Nexus checkout's requirements-dev.txt, for the same venv (from the Nexus
+# root, after its own):  python -m pip install -r windows-portable/requirements-dev.txt
+-r portal/requirements-dev.txt
+-r tools/requirements-dev.txt
+-r apps/sftp/requirements-dev.txt   # paramiko: its tests import it
+-r apps/rplay/requirements-dev.txt  # cryptography: its tests import it
