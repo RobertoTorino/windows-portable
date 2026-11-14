@@ -1049,8 +1049,9 @@ def test_the_suite_page_switches_the_sound(world, qapp, monkeypatch):
     window.on_action("menu")
     assert window.suite_pane.wallpaper.hasFocus() and window.suite_pane.sound.label.text() == "Sound: On"
     window.on_action("down")
-    assert window.suite_pane.transparency.hasFocus()                  # the wallpaper's (30-10-2026), then the sound
-    window.on_action("down")
+    assert window.suite_pane.transparency.hasFocus()                  # the wallpaper's (30-10-2026)
+    window.on_action("up")
+    window.on_action("right")                                         # the sound's column (14-11-2026)
     assert window.suite_pane.sound.hasFocus() and ("A", "Change") in window.legend.items
     window.on_action("accept")
     assert window.suite_pane.sound.label.text() == "Sound: Off" and not portable.sound_on(mw.SUITE)
@@ -1062,6 +1063,94 @@ def test_the_suite_page_switches_the_sound(world, qapp, monkeypatch):
     assert portable.sound_on(mw.SUITE)
     world.make(intro_ms=60_000)
     assert len(intro()) == 1
+
+
+def test_the_music_row_steps_through_off_built_in_and_your_own_tracks(world, qapp, monkeypatch, tmp_path):
+    """The portal's background music (owner, 14-11-2026): the Music row under Sound picks the next of Off, Built-in
+    (the portal's own track) and each sound file in the suite's music folder, which plays at once; the choice is
+    kept. It is apart from the Sound row: either can be off while the other is on."""
+    from bc250_core import portable
+    from portable_portal import music
+    from PyQt6.QtCore import Qt
+    assert music.BUILT_IN.is_file() and music.BUILT_IN.read_bytes()[:4] == b"OggS"
+    folder = music.folder()                                           # in the suite's folder, beside the wallpapers'
+    assert folder.is_relative_to(tmp_path) and folder.parts[-2:] == ("windows-portable-suite", "music")
+    window = world.make()
+    monkeypatch.setattr(window, "isActiveWindow", lambda: True)
+    monkeypatch.setattr(mw.QGuiApplication, "applicationState",
+                        staticmethod(lambda: Qt.ApplicationState.ApplicationActive))
+    window.sync_music()
+    player = window.music
+    assert player.path == music.BUILT_IN and player.playing and folder.is_dir()     # the folder is made
+    (folder / "b-side.MP3").write_bytes(b"two")
+    (folder / "A song.ogg").write_bytes(b"one")
+    (folder / "notes.txt").write_text("no sound file")
+    window.on_action("menu")
+    pane = window.suite_pane
+    assert pane.music.label.text() == "Music: Built-in"
+    window.on_action("right")
+    window.on_action("down")
+    assert pane.music.hasFocus() and ("A", "Change") in window.legend.items
+    seen = []
+    for _ in range(4):
+        window.on_action("accept")
+        seen.append((pane.music.label.text(), player.path, player.playing))
+    assert seen == [("Music: A song.ogg", folder / "A song.ogg", True),
+                    ("Music: b-side.MP3", folder / "b-side.MP3", True),
+                    ("Music: Off", None, False), ("Music: Built-in", music.BUILT_IN, True)]
+    assert portable.sound_on(mw.SUITE)                                # Off left the sounds on
+    window.toggle_sound()
+    assert not portable.sound_on(mw.SUITE) and player.playing         # Sound off leaves the music on
+    window.toggle_sound()
+    window.next_music()
+    again = world.make()
+    assert again.music_name() == "A song.ogg" and again.music.path == folder / "A song.ogg"     # kept
+    (folder / "A song.ogg").unlink()
+    gone = world.make()
+    assert gone.music_name() == "Built-in" and gone.music.path == music.BUILT_IN    # the track is gone: the portal's
+    gone.next_music()
+    gone.next_music()
+    assert gone.music_name() == "Off"
+    off = world.make()
+    off.sync_music()
+    assert off.music_name() == "Off" and off.music.path is None and not off.music.playing
+    assert "Music: a track that plays quietly" in pane.info.info and music.FOLDER in pane.info.info
+
+
+def test_the_music_waits_for_the_intro_and_behind_another_window(world, qapp, monkeypatch):
+    """The music starts when the intro is over, waits while another window has the focus (a game, an app) and plays
+    on when the portal is back; it stops with the window."""
+    from PyQt6.QtCore import Qt
+    state = [Qt.ApplicationState.ApplicationActive]
+    monkeypatch.setattr(mw.QGuiApplication, "applicationState", staticmethod(lambda: state[0]))
+    window = world.make(intro_ms=60_000)
+    monkeypatch.setattr(window, "isActiveWindow", lambda: True)
+    player = window.music
+    assert window.intro is not None and not player.playing            # the intro plays
+    window.on_action("accept")                                        # skipped
+    assert window.intro is None and player.playing
+    state[0] = Qt.ApplicationState.ApplicationInactive
+    window.sync_music(state[0])
+    assert not player.playing and player.calls[-1] == "pause"         # paused: it plays on from there
+    state[0] = Qt.ApplicationState.ApplicationActive
+    window.sync_music(state[0])
+    assert player.playing
+    window.close()
+    assert player.calls[-1] == "stop"
+
+
+def test_the_music_player_stays_silent_without_a_track(silent_music, tmp_path):
+    """The real player: no track, or one that is gone, makes no player and no error; pause and stop before play too."""
+    player = silent_music()
+    player.pause()
+    player.stop()
+    player.play()
+    assert player.player is None and not player.playing
+    player.set_track(tmp_path / "gone.ogg")
+    player.play()
+    assert player.player is None and player.wanted
+    player.pause()
+    assert not player.wanted
 
 
 def test_the_chip_is_read_through_cores_chip_and_closed_with_the_window(world, qapp, monkeypatch):
@@ -1193,11 +1282,11 @@ def test_lt_moves_the_portal_with_a_second_screen(world, qapp, monkeypatch):
     window.close()
 
 
-def test_the_settings_lie_in_three_columns(world, qapp, monkeypatch):
+def test_the_settings_lie_in_columns(world, qapp, monkeypatch):
     """Owner, 06-11-2026 and 07-11-2026: the rows lay too close, the focused one's edge was cut off (also by the line
-    under them). Three columns of at most five rows, Look and device, Clock and weather, Screens, with the Ally X's
-    Performance mode, a second screen and a two-line message all shown: every row whole, apart, above the message;
-    the d-pad goes down a column and across between them."""
+    under them). Columns of at most five rows, Look and device, Sound and music (owner, 14-11-2026: the Music row),
+    Clock and weather, Screens, with the Ally X's Performance mode, a second screen and a two-line message all shown:
+    every row whole, apart, above the message; the d-pad goes down a column and across between them."""
     from portable_portal import operating_mode as om
     from test_operating_mode import FakeApi
     turbo = om.BY_LETTER["T"]
@@ -1211,7 +1300,8 @@ def test_the_settings_lie_in_three_columns(world, qapp, monkeypatch):
     pane.set_screen("Other screen")
     window.say("", mw.SWITCHED_MODE)                    # two lines under the rows
     qapp.processEvents()
-    columns = [[pane.wallpaper, pane.transparency, pane.sound, pane.mode, pane.xbox_mode],
+    columns = [[pane.wallpaper, pane.transparency, pane.mode, pane.xbox_mode],
+               [pane.sound, pane.music],
                [pane.autostart, pane.hours, pane.seconds, pane.zone, pane.place],
                [pane.handheld, pane.both, pane.extend, pane.tv, pane.screen_row]]
     lefts = []
@@ -1224,17 +1314,17 @@ def test_the_settings_lie_in_three_columns(world, qapp, monkeypatch):
         assert all(row.height() == portable.px(portable.ROW_HEIGHT) for row in rows)
         last = rows[-1]
         assert last.mapTo(window, last.rect().bottomLeft()).y() < pane.status.mapTo(window, pane.status.rect().topLeft()).y()
-    assert lefts == sorted(lefts) and len(set(lefts)) == 3
+    assert lefts == sorted(lefts) and len(set(lefts)) == 4
+    assert all(len(rows) <= 5 for rows in columns)
     status = pane.status.mapTo(window, pane.status.rect().bottomLeft()).y()
     assert status <= pane.mapTo(window, pane.rect().bottomLeft()).y()
     pane.wallpaper.setFocus()
-    for _ in range(4):
+    for _ in range(3):
         window.on_action("down")
     assert pane.xbox_mode.hasFocus()
-    window.on_action("right")
-    assert window.focusWidget() in columns[1]                        # across to the next column
-    window.on_action("right")
-    assert window.focusWidget() in columns[2]
+    for column in columns[1:]:
+        window.on_action("right")
+        assert window.focusWidget() in column                        # across to the next column
     window.close()
 
 

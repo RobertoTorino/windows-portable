@@ -28,7 +28,7 @@ BANNER_IN = 0.08                # the banner fades in over this part of the intr
 
 
 def play(sound: Path | None) -> None:
-    """Play a .wav in the background with Windows' own player (winsound: no Qt Multimedia in the program), or stop
+    """Play a .wav in the background with Windows' own player (winsound; the music is Qt Multimedia's), or stop
     the one playing (None). Without winsound (Linux) or without an audio output the intro stays silent."""
     try:
         import winsound

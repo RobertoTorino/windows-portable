@@ -148,8 +148,8 @@ the mode, so it can show another one.
 installs the new release in a PowerShell window and starts again. The new release brings the apps it pins: their
 tiles then say **Update** where a newer release is pinned.
 
-The settings are on the Settings page too, under the release, in three columns: **Look and device** (how the portal
-looks and sounds, the performance mode and XBOX mode), **Start, clock and weather** (starting at sign-in, and the top
+The settings are on the Settings page too, under the release, in four columns: **Look and device** (how the portal
+looks, the performance mode and XBOX mode), **Sound and music**, **Start, clock and weather** (starting at sign-in, and the top
 of the page) and **Screens**. They are
 kept for the next start.
 The d-pad moves up and down a column and left and right between them, **A** on a setting changes it; **B** goes back
@@ -163,6 +163,7 @@ bottom does.
 | Wallpaper | A picture behind the tiles, which show it through them, in every app of the suite, each from its next start. **A** picks the next: **Off** (the plain dark background), **Built-in** (the suite's own picture), then each of your own pictures, by file name (see below). |
 | Transparency | How much of the dark background lies over the picture, so the text stays easy to read. **A** adds 10 %, up to 90 %, then starts at 0 %. It starts at 59 %. |
 | Sound | The intro's sound when the portal starts, and a short sound on each controller button. Off: both are silent until Windows starts again; after a restart the sound is on. |
+| Music | A track that plays quietly, over and over, while the portal is in front. **A** picks the next: **Off**, **Built-in** (the portal's own track), then each of your own tracks, by file name (see below); it plays at once, and the choice is kept. It is apart from Sound: either can be off while the other is on. The music waits while the intro plays and while another window has the focus (a game, an app), and plays on from where it was when you are back. |
 | Start at sign-in | **On**: the portal starts by itself, full screen, each time you sign in to Windows. **A** first says what it does and asks for **A** again within five seconds; only that second press turns it on (the row says **press A again** meanwhile). **A** turns it off at once. It is a shortcut to the installed portal in your Startup folder (`%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup\Windows Portable Suite.lnk`), in your own account; Windows' Settings > Apps > Startup lists it too, and uninstalling the suite takes it away. The portal run from a checkout cannot start at sign-in. |
 | Clock | The time at the top in **24 hours** (17:04) or **12 hours** (5:04 PM). **A** switches. |
 | Seconds | **On** shows the seconds too (17:04:09). **A** switches. |
@@ -175,6 +176,11 @@ bottom does.
 | Extend | **A** has Windows use both screens, the second one beside the handheld's. XBOX mode stays on the main screen, the handheld's. |
 | Second screen only | **A** has Windows show its picture on the second screen only (a TV or a monitor), so XBOX mode, the portal, the games and the sound are all there; the handheld's screen goes dark. |
 | Screen | Only with a second screen attached, such as a TV or a monitor: the screen the portal is on, **PC screen** (the handheld's own) or **Other screen**. **A**, or **LT** on any page, moves it to the next screen (see below). |
+
+**Your own music** goes in the folder `%LOCALAPPDATA%\windows-portable-suite\music`, which the portal makes: paste
+that address in File Explorer's address bar and drop the tracks there. Ogg, Opus, MP3, FLAC, WAV and M4A sound files
+in that folder are offered. Take a track out of the folder and the portal plays its own again. An uninstall leaves
+your tracks where they are.
 
 **Your own wallpapers** go in the folder `%LOCALAPPDATA%\windows-portable-suite\wallpapers`, which the installer
 makes: paste that address in File Explorer's address bar and drop the pictures there. Only pictures in that folder

@@ -15,10 +15,12 @@ from PyQt6.QtWidgets import QGridLayout, QHBoxLayout, QLabel, QLineEdit, QSizePo
 from bc250_core.portable import (AMBER, BODY, DIM, LEGEND, ON_AMBER, PICTURE_RULES, RADIUS, RAISED, TEXT, VEIL_MAX,
                                  VEIL_STEP, InfoPill, Pane, Row, Tabs, font, px, text_label)
 
+from . import music
 from .operating_mode import BY_LETTER, MODES
 from .weather import MATCHES, Place
 
 WALLPAPER_FOLDER = r"%LOCALAPPDATA%\windows-portable-suite\wallpapers"   # as the user finds it
+MUSIC_FOLDER, MUSIC_RULES = music.FOLDER, music.RULES
 NAME = 24                               # pt: the name at the top of a pane
 LAUNCH, ICON = 36, 26                   # a launch button's square, as high as a tab's name, and its icon
 
@@ -250,9 +252,11 @@ class SuitePane(Pane):
     menu row went on 07-11-2026: the XBOX app had to be ended and started again for it, which took long). What
     each does is behind the information icon (Menu), not in lines under the rows (owner, 30-10-2026: no long lines
     of text where the space is not there). They had a page of their own on View until View became the suite's Exit
-    app (owner, 29-10-2026). Three columns under a heading each, at most five rows in one (owner, 06-11-2026 and
+    app (owner, 29-10-2026). Columns under a heading each, at most five rows in one (owner, 06-11-2026 and
     07-11-2026: seven rows in a column lay too close, the focused one's edge was cut off): the d-pad moves up and
-    down a column, left and right between them."""
+    down a column, left and right between them. A fourth column, Sound and music, came with the Music row (owner,
+    14-11-2026: the portal's background music, Off, Built-in or a track of the user's own): the first three were
+    full."""
 
     def __init__(self, parent: QWidget | None = None):
         super().__init__(parent)
@@ -274,6 +278,7 @@ class SuitePane(Pane):
         self.wallpaper = Row("Wallpaper: Built-in")
         self.transparency = Row("Transparency: 59 %")
         self.sound = Row("Sound: On")
+        self.music = Row("Music: Built-in")
         self.mode = Row("Performance mode: Turbo")
         self.mode.hide()                                # on the ROG XBOX Ally X only
         self.xbox_mode = Row("XBOX mode ↔ Desktop")       # Win + F11 (owner, 05-11-2026)
@@ -294,8 +299,8 @@ class SuitePane(Pane):
         self.autostart = Row("Start at sign-in: Off")   # owner, 07-11-2026: turned on with a second press
         columns = QHBoxLayout()
         columns.setSpacing(px(20))
-        for heading, rows in (("Look and device", (self.wallpaper, self.transparency, self.sound, self.mode,
-                                                   self.xbox_mode)),
+        for heading, rows in (("Look and device", (self.wallpaper, self.transparency, self.mode, self.xbox_mode)),
+                              ("Sound and music", (self.sound, self.music)),
                               ("Start, clock and weather", (self.autostart, self.hours, self.seconds, self.zone,
                                                             self.place)),
                               ("Screens", (self.handheld, self.both, self.extend, self.tv, self.screen_row))):
@@ -344,6 +349,10 @@ class SuitePane(Pane):
         parts += [f"Transparency: how much of the dark background lies over the wallpaper, so the text stays easy to "
                   f"read. The A button adds {VEIL_STEP} %, up to {VEIL_MAX} %, then starts at 0 %.",
                   "Sound: the portal's intro sound and a short one on each controller button, for the suite.",
+                  "Music: a track that plays quietly, over and over, while the portal is in front. It is apart from "
+                  "Sound: either can be off while the other is on. The A button picks the next: Off, Built-in (the "
+                  "portal's own track), then each of your own tracks, by file name. Your own tracks go in "
+                  f"{MUSIC_FOLDER} (paste it in File Explorer's address bar): {MUSIC_RULES}.",
                   "Clock: the time at the top in 24 hours (17:04) or 12 hours (5:04 PM). Seconds: with or without them. "
                   "Time zone: CET is Amsterdam time (CEST in summer), or UTC; its name follows the time. The A button "
                   "switches each.",
@@ -403,6 +412,10 @@ class SuitePane(Pane):
 
     def set_sound(self, on: bool) -> None:
         self.sound.set_text(f"Sound: {'On' if on else 'Off'}")
+
+    def set_music(self, name: str) -> None:
+        """The Music row: *name* (Off, Built-in or a track's file name)."""
+        self.music.set_text(f"Music: {name}")
 
     def set_screen(self, name: str) -> None:
         """The Screen row: "" with one screen (hidden), else the name of the screen the portal is on."""

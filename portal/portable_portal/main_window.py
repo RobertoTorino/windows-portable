@@ -34,7 +34,7 @@ from bc250_core.portable import AMBER, DIM, KEYBOARD, MENU, VIEW, Card, Legend, 
 from bc250_core.updates import UpdateChecker
 
 from . import ACTION_SOUND, APP_ICONS, APP_ID, APP_NAME, INTRO_SOUND, SUITE, __version__, operating_mode
-from . import launchers, weather
+from . import launchers, music, weather
 from .clock import ZONE_NAMES, read as read_clock, save as save_clock
 from .intro import INTRO_MS, Intro, play
 from .manifest import CATEGORIES, AppEntry
@@ -249,7 +249,8 @@ class MainWindow(PortableWindow):
                  find_app: Callable[[launchers.Launcher], str | None] = launchers.find,
                  start_app_id: Callable[[str], None] = launchers.start,
                  app_icon: Callable[[launchers.Launcher], QPixmap | None] = launcher_icon,
-                 press: Callable[[tuple[str, ...]], None] = launchers.press_keys):
+                 press: Callable[[tuple[str, ...]], None] = launchers.press_keys,
+                 music_player: music.Player | None = None):
         """*build*: the sha256 of the zip this portal was installed from (build.sha256), "" when not known, None
         from a checkout: a new build of the same version is offered when its sha256 differs. *intro_ms*: how long
         the intro plays when the window starts (0: none). *wallpaper*: the picture behind the page, darkened (None:
@@ -266,7 +267,8 @@ class MainWindow(PortableWindow):
         windows_notice; tests pass a fake). *find_app*: the application ID a button on the tabs' line starts, None when
         its program is not here (launchers.find); *start_app_id*: starts it (launchers.start); *app_icon*: its icon
         (launcher_icon), None for the initials; *press*: presses keys together (launchers.press_keys), Command
-        Center's shortcut."""
+        Center's shortcut. *music_player*: plays the background music (music.Player; tests pass one that plays
+        nothing)."""
         old = QSettings()                              # portal 1.6.0 kept the switch in portal.ini: the suite's now
         if old.contains(WALLPAPER_KEY) and portable.look_settings(SUITE).value(portable.LOOK_KEY) is None:
             portable.set_wallpaper_on(SUITE, str(old.value(WALLPAPER_KEY)).lower() != "false")
@@ -284,6 +286,7 @@ class MainWindow(PortableWindow):
         self.sound_back()                               # before the intro, which plays it
         self.portal_check, self.battery, self.launch, self.terminal = portal_check, battery, launch, terminal
         self.player = player                            # plays a .wav (the intro's player, winsound)
+        self.music = music_player or music.Player()     # the background music, apart from the sounds
         self.display = display                          # Windows' display setup (DisplaySwitch.exe)
         self.xbox_mode = xbox_mode                      # Win + F11
         self.sensors: chip.Temperatures | None = None
@@ -383,6 +386,7 @@ class MainWindow(PortableWindow):
         self.suite_pane.wallpaper.activated.connect(self.next_wallpaper)
         self.suite_pane.transparency.activated.connect(self.next_transparency)
         self.suite_pane.sound.activated.connect(self.toggle_sound)
+        self.suite_pane.music.activated.connect(self.next_music)
         self.suite_pane.mode.activated.connect(self.show_modes)
         self.suite_pane.screen_row.activated.connect(self.next_screen)
         self.suite_pane.handheld.activated.connect(lambda: self.play_on(PC_SCREEN, ON_HANDHELD, "PC screen only"))
@@ -470,6 +474,8 @@ class MainWindow(PortableWindow):
                                player=player)
             self.intro.finished.connect(self._intro_done)
             self.intro.cover()
+        self.music.set_track(dict(music.choices())[self.music_name()])
+        QGuiApplication.instance().applicationStateChanged.connect(self.sync_music)
 
     def start(self) -> None:
         """After the window is shown: the intro, the controller, the status line, the last tab, and the portal's own
@@ -491,9 +497,11 @@ class MainWindow(PortableWindow):
         self.startup_done()
         if self.intro is not None:
             self.intro.begin()
+        self.sync_music()
 
     def _intro_done(self) -> None:
         self.intro = None
+        self.sync_music()
         self.show_tab(self.tabs.current)                # the focus back on the tab's tile
 
     def on_action(self, action: str) -> None:
@@ -675,6 +683,35 @@ class MainWindow(PortableWindow):
         settings.sync()
         self.suite_pane.set_sound(on)
         self.log.info(f"Sound {'on' if on else 'off'}, for the suite.")
+
+    def music_name(self) -> str:
+        """The Music row's choice: Off, Built-in, or the name of a track in the suite's music folder."""
+        return music.chosen(self.settings, music.choices())
+
+    def next_music(self) -> None:
+        """The Settings page's Music row (owner, 14-11-2026): the next choice, Off, the portal's own track, then each
+        track dropped in the suite's music folder; it plays at once. Apart from the Sound row: Off here leaves the
+        sounds on, and Sound off leaves the music on."""
+        choices = music.choices()
+        names = [name for name, _ in choices]
+        name, track = choices[(names.index(self.music_name()) + 1) % len(choices)]
+        music.keep(self.settings, name)
+        self.music.set_track(track)
+        self.suite_pane.set_music(name)
+        self.sync_music()
+        self.log.info(f"Music: {name}.")
+
+    def music_wanted(self) -> bool:
+        """Whether the music plays now: not Off, the portal shown and in front, and the intro over."""
+        return (self.music.path is not None and self.intro is None and self.isVisible() and not self.isMinimized()
+                and QGuiApplication.applicationState() == Qt.ApplicationState.ApplicationActive)
+
+    def sync_music(self, *_args) -> None:
+        """Play the music or let it wait, as music_wanted says: behind a game or an app it waits."""
+        if self.music_wanted():
+            self.music.play()
+        else:
+            self.music.pause()
 
     def sound_back(self) -> None:
         """Sound on again after Windows restarted (owner, 07-11-2026: "on reboot it should return to default"): Off
@@ -957,6 +994,7 @@ class MainWindow(PortableWindow):
         self.stack.setCurrentWidget(self.suite_pane)
         self.show_wallpaper_rows()
         self.suite_pane.set_sound(portable.sound_on(SUITE))
+        self.suite_pane.set_music(self.music_name())
         self.suite_pane.set_mode(self.mode_name())
         self.suite_pane.set_screen(self.screen_name())
         self.suite_pane.set_autostart(self.autostart_link().is_file(), self.autostart_asked)
@@ -1412,6 +1450,8 @@ class MainWindow(PortableWindow):
     def changeEvent(self, event) -> None:  # noqa: N802 (Qt override)
         if event.type() == QEvent.Type.ActivationChange and self.isActiveWindow() and self.intro is None:
             self.recheck_portal()
+        if event.type() == QEvent.Type.WindowStateChange:
+            self.sync_music()                           # minimized: the music waits
         super().changeEvent(event)
 
     def _portal_checked(self, result: object) -> None:
@@ -1684,6 +1724,7 @@ class MainWindow(PortableWindow):
         self.progress_timer.stop()
         self.status_timer.stop()
         self.sound_timer.stop()
+        self.music.stop()
         self.tray_timer.stop()
         self.hide_tray()
         if self.sensors is not None:

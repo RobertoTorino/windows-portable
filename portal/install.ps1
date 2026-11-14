@@ -21,6 +21,8 @@
 #  * %LOCALAPPDATA%\windows-portable-suite\wallpapers: the folder for your own wallpapers, which the portal's
 #    Settings page offers (PNG, JPEG or WebP, wider than high, at least 1280 x 720). Your pictures in it always stay;
 #    an uninstall removes it only when it is empty.
+#  * %LOCALAPPDATA%\windows-portable-suite\music: the folder for your own music tracks, which the portal makes and
+#    its Settings page offers. Your tracks in it always stay; an uninstall removes it only when it is empty.
 #  * A Start-menu entry in the Windows Portable Suite folder, and a Desktop shortcut.
 #  * On the ROG XBOX Ally X, the portal's Operating Mode helper, when its page installed it (as administrator, in
 #    C:\Program Files\windows-portable-suite\): --uninstall removes it with its own remover, Windows' administrator
@@ -46,6 +48,7 @@ $Releases = Join-Path $PortalHome 'releases'
 $RecordsFile = Join-Path $PortalHome 'installed.json'
 $Settings = Join-Path $env:APPDATA "$Suite\portal.ini"
 $Wallpapers = Join-Path $SuiteHome 'wallpapers'
+$Music = Join-Path $SuiteHome 'music'
 $MenuDir = Join-Path $env:APPDATA "Microsoft\Windows\Start Menu\Programs\$SuiteName"
 $MenuEntry = Join-Path $MenuDir "$AppName.lnk"
 # The portal's own, while it set another screen than PC screen only (owner, 07-11-2026): PC screen only at the next sign-in
@@ -292,6 +295,7 @@ if ($Uninstall) {
     }
     Remove-IfEmpty $MenuDir
     Remove-IfEmpty $Wallpapers                                              # your pictures always stay
+    Remove-IfEmpty $Music                                                   # and your tracks
     Remove-IfEmpty $SuiteHome
     Info "$AppName is uninstalled."
     exit 0

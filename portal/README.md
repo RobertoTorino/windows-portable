@@ -11,7 +11,8 @@ handheld (first the ASUS ROG XBOX Ally X), each from its own GitHub release, che
 portal carries. Windows Portable Test is always installed with the portal and listed first.
 
 It opens with a short intro, about three seconds, with the suite's name and its sound; any button, key or tap
-skips it.
+skips it. After it, music plays quietly while the portal is in front: the portal's own track or one of yours, or
+none (Music on the Settings page).
 
 Made for the handheld in your hands: full screen, the apps as tiles under tabs (LB and RB change the tab), the amber
 focus moved by the d-pad, A to install or open the focused app, Y to update it, X for its details (and Remove there),

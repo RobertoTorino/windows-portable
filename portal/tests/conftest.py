@@ -38,3 +38,38 @@ def settings_in_tmp(tmp_path, monkeypatch):
     monkeypatch.setenv("APPDATA", str(tmp_path / "Roaming"))
     monkeypatch.setenv("XDG_DATA_HOME", str(tmp_path / "data"))
     monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path / "config"))
+
+
+class SilentPlayer:
+    """Stands in for the music's player: it records what the portal asked and plays nothing."""
+
+    def __init__(self):
+        self.path = None
+        self.playing = False
+        self.calls: list[str] = []
+
+    def set_track(self, path) -> None:
+        self.path = path
+        self.calls.append("track")
+
+    def play(self) -> None:
+        self.playing = True
+        self.calls.append("play")
+
+    def pause(self) -> None:
+        self.playing = False
+        self.calls.append("pause")
+
+    def stop(self) -> None:
+        self.playing = False
+        self.calls.append("stop")
+
+
+@pytest.fixture(autouse=True)
+def silent_music(monkeypatch):
+    """No test plays the portal's music on the machine the tests run on: a window's player is a SilentPlayer. A test
+    of the player itself makes one from the class this returns."""
+    from portable_portal import music
+    real = music.Player
+    monkeypatch.setattr(music, "Player", SilentPlayer)
+    return real

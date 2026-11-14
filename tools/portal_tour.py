@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 """A video tour of the portal, for the wiki and YouTube: the real portal window from this checkout, driven by a
 script and rendered frame by frame into an MP4 (H.264, 1920 x 1080, 30 fps), with music under it that fades out over
-the last two seconds (the Nexus tools' sounds/the_quiet_engine_remix_3min.mp3, every suite's, made with generative AI
+the last two seconds (the Nexus tools' sounds/the_quiet_engine_remix.ogg, every suite's, made with generative AI
 tools). The same tour as the BC250 Bazzite Suite's (bc250-bazzite/tools/portal_tour.py), on this suite's portal: the
 window at the handheld's 1280 x 720, drawn at 150 % (owner, 02-11-2026: the Windows Portable Suite had no tour).
 
@@ -40,7 +40,7 @@ from tour_frames import Recorder  # noqa: E402
 
 INSTALLED = ("test", "pcsx2", "rpcs3", "shadps4", "bios")
 BEHIND = "shadps4"                                  # installed from an older release: the dot and Update
-MUSIC = tour_frames.MUSIC_DIR / "the_quiet_engine_remix_3min.mp3"
+MUSIC = tour_frames.MUSIC_DIR / "the_quiet_engine_remix.ogg"
 FADE = 2.0                                          # the music fades out over the video's last seconds
 WIKI_VIDEO = SUITE / "docs" / "videos" / "portal-tour.mp4"
 WIKI_POSTER = SUITE / "docs" / "images" / "portal" / "portal-tour-poster.webp"
@@ -105,7 +105,8 @@ class Tour(Recorder):
                                launch=lambda argv: None, terminal=lambda *args, **kwargs: None,
                                exit_dir=home / "exit", intro_ms=INTRO_MS, steam_here=lambda: True,
                                open_steam=lambda url: None,
-                               chip_parts=lambda: ["CPU 12% 48°", "GPU 7% 47°"], modes=lambda: None)
+                               chip_parts=lambda: ["CPU 12% 48°", "GPU 7% 47°"], modes=lambda: None,
+                               music_player=mw.music.Silent())
         window.setWindowTitle(INFO.display_name)
         window.intro.player = lambda wav: None     # the intro's sound: not here
         tour_frames.place(window)

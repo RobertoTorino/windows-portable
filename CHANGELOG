@@ -1,3 +1,10 @@
+Changelog: 14-11-2026 15:00:58
+
+Added. The Portal Tour has the new remix under it (owner, 14-11-2026): the Nexus tools'
+sounds/the_quiet_engine_remix.ogg, three minutes long, in place of the_quiet_engine_remix_3min.mp3, which Nexus no
+longer has. tools/portal_tour.py takes it by default (--music FILE for another). The tour on the wiki's Portal Tour
+page still has the track before it, until it is recorded again on the handheld.
+
 Changelog: 13-11-2026 18:44:27
 
 Breaking. The Windows Portable Suite has a repository of its own, github.com/RobertoTorino/windows-portable (owner,

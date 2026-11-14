@@ -1,3 +1,15 @@
+Changelog: 14-11-2026 17:16:48
+
+Added. The portal plays background music (owner, 14-11-2026): a track that plays quietly, over and over, while the
+portal is in front. It is the owner's remix of DAT Station's Sea Breeze, made in Audacity. A new Music row on the
+Settings page picks the next of Off, Built-in (the portal's own track) and each of your own tracks, the Ogg, Opus,
+MP3, FLAC, WAV and M4A sound files in %LOCALAPPDATA%\windows-portable-suite\music, which the portal makes; an
+uninstall leaves your tracks there. Music is apart from Sound: either can be off while the other is on. The music
+waits while the intro plays and while another window has the focus (a game, an app), and plays on from where it
+was. The Settings page has a fourth column for it, Sound and music, with the Sound row: the other three were full.
+The music plays through Qt Multimedia, which the portal's program carries from now on, with FFmpeg's libraries and
+their notice. The wiki's Portal page says so. tools/portal_tour.py plays no music while it draws the portal.
+
 Changelog: 09-11-2026 14:43:34
 
 Release 10.4.0. Pins wp-test-v5.1.1, wp-pcsx2-v8.1.1, wp-ppsspp-v6.1.1, wp-rpcs3-v5.1.1, wp-shadps4-v6.1.1, wp-vita3k-v6.2.0, wp-xenia-v6.2.0, wp-rplay-v1.1.1, wp-hdcam-v1.1.1, wp-bios-v1.1.1, wp-sftp-v1.1.1, wp-smart-v1.1.1, wp-support-v1.1.1, wp-datstat-v1.1.1, wp-upscale-v1.1.1, wp-hdcontrol-v1.1.1, wp-ssd-v1.1.1.
